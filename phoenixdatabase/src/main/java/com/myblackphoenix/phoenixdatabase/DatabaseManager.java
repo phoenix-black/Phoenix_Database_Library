@@ -15,6 +15,7 @@ import java.util.ArrayList;
 
 /**
  * Created by Praba on 9/3/2017.
+ *
  */
 public class DatabaseManager {
     private SQLiteOpenHelper databaseHelper = null;
@@ -42,6 +43,7 @@ public class DatabaseManager {
                 onCreate(sqLiteDatabase);
             }
         };
+        _databaseManager = this;
     }
 
     public static synchronized DatabaseManager getInstance() throws NullPointerException {
