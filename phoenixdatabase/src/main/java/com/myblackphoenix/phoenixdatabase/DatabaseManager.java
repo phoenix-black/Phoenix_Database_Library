@@ -43,6 +43,7 @@ public class DatabaseManager {
                 onCreate(sqLiteDatabase);
             }
         };
+
         _databaseManager = this;
     }
 
