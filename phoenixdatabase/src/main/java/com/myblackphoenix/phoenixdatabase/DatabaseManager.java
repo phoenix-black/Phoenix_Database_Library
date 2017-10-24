@@ -17,11 +17,16 @@ import java.util.ArrayList;
  * Created by Praba on 9/3/2017.
  *
  */
-public class DatabaseManager {
+public abstract class DatabaseManager {
+
+    private String _databaseName;
+    private int _databaseVersion;
+
     private SQLiteOpenHelper databaseHelper = null;
     private SQLiteDatabase db = null;
+    private ArrayList<DatabaseTable> _databaseTableArrayList;
     private static DatabaseManager _databaseManager = null;
-
+    public abstract void onCreateTable();
     public DatabaseManager(Context context, String databaseName, int databaseVersion, final ArrayList<DatabaseTable> databaseTableArrayList) throws SQLiteException {
         databaseHelper = new SQLiteOpenHelper(context,
                 databaseName,
@@ -47,11 +52,52 @@ public class DatabaseManager {
         _databaseManager = this;
     }
 
+    public DatabaseManager(String databaseName, int databaseVersion){
+        this._databaseName = databaseName;
+        this._databaseVersion = databaseVersion;
+        this._databaseTableArrayList = new ArrayList<>();
+        onCreateTable();
+        _databaseManager = this;
+    }
+
+    public void addTable(@NonNull DatabaseTable databaseTable){
+        this._databaseTableArrayList.add(databaseTable);
+    }
+
+    public void create(Context context) throws SQLiteException {
+        databaseHelper = new SQLiteOpenHelper(context, _databaseName, null, _databaseVersion) {
+            @Override
+            public void onCreate(SQLiteDatabase sqLiteDatabase) {
+                for(DatabaseTable table: _databaseTableArrayList) {
+                    sqLiteDatabase.execSQL(table.getQueryCreateTable());
+                }
+            }
+
+            @Override
+            public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
+                for(DatabaseTable table: _databaseTableArrayList) {
+                    sqLiteDatabase.execSQL(table.getQueryDropTable());
+                }
+                onCreate(sqLiteDatabase);
+            }
+        };
+    }
+
+
     public static synchronized DatabaseManager getInstance() throws NullPointerException {
         if(_databaseManager !=null) {
             return _databaseManager;
         }
         throw new NullPointerException("DatabaseManager is Not Instantiated");
+    }
+
+    public DatabaseTable getTableInstance(String tableName){
+        for(DatabaseTable databaseTable : _databaseTableArrayList){
+            if(databaseTable.getTableName().equals(tableName)){
+                return databaseTable;
+            }
+        }
+        return null;
     }
 
     public long Insert(String TABLE_NAME, ContentValues values) throws DatabaseException {
@@ -66,7 +112,6 @@ public class DatabaseManager {
     }
 
     public long Update(String TABLE_NAME, String rowKey, String rowID, ContentValues values) throws DatabaseException{
-
 
         if(databaseHelper == null){
             throw new DatabaseException("DatabaseHelper is Not Instantiated");
