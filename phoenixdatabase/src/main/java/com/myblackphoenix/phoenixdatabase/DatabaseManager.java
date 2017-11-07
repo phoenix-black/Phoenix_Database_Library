@@ -56,8 +56,8 @@ public abstract class DatabaseManager {
         this._databaseName = databaseName;
         this._databaseVersion = databaseVersion;
         this._databaseTableArrayList = new ArrayList<>();
-        onCreateTable();
         _databaseManager = this;
+        onCreateTable();
     }
 
     public void addTable(@NonNull DatabaseTable databaseTable){
